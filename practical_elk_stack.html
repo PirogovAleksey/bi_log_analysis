@@ -1,0 +1,1797 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Практична робота: Аналіз логів банківських систем з використанням ELK Stack</title>
+
+    <style>
+        /* Base styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f5f7fa;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: white;
+            min-height: 100vh;
+        }
+
+        /* Breadcrumb */
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 15px 0;
+            font-size: 0.9rem;
+            color: #666;
+            border-bottom: 1px solid #e0e0e0;
+            margin-bottom: 30px;
+        }
+
+        .breadcrumb a {
+            color: #0066cc;
+            text-decoration: none;
+        }
+
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+
+        .breadcrumb-separator {
+            color: #999;
+        }
+
+        /* Header */
+        .section-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            color: #1a1a1a;
+            margin-bottom: 10px;
+        }
+
+        .section-subtitle {
+            font-size: 1.5rem;
+            color: #0066cc;
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+
+        .text-secondary {
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        .mb-8 {
+            margin-bottom: 3rem;
+        }
+
+        /* Card */
+        .card {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .card-header {
+            padding: 20px;
+            border-bottom: 1px solid #e0e0e0;
+            background: #f8f9fa;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .card-title {
+            font-size: 1.5rem;
+            color: #1a1a1a;
+            margin: 0;
+        }
+
+        .card-body {
+            padding: 20px;
+        }
+
+        /* Grid */
+        .grid {
+            display: grid;
+        }
+
+        .grid-cols-2 {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .gap-4 {
+            gap: 1.5rem;
+        }
+
+        .mb-6 {
+            margin-bottom: 2rem;
+        }
+
+        /* Alert */
+        .alert {
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .alert-info {
+            background: #e7f3ff;
+            border: 1px solid #b3d9ff;
+        }
+
+        .alert-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #004085;
+        }
+
+        /* Typography */
+        h2 {
+            font-size: 2rem;
+            color: #1a1a1a;
+            margin: 40px 0 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #0066cc;
+        }
+
+        h3 {
+            font-size: 1.5rem;
+            color: #1a1a1a;
+            margin: 20px 0 15px;
+        }
+
+        h4 {
+            font-size: 1.2rem;
+            color: #333;
+            margin: 15px 0 10px;
+        }
+
+        p {
+            margin: 10px 0;
+        }
+
+        ul, ol {
+            margin: 15px 0;
+            padding-left: 30px;
+        }
+
+        li {
+            margin: 8px 0;
+        }
+
+        a {
+            color: #0066cc;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        strong {
+            font-weight: 600;
+            color: #1a1a1a;
+        }
+
+        code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            color: #d63384;
+        }
+
+        /* Navigation */
+        .practical-nav {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 2px solid #e0e0e0;
+        }
+
+        .nav-btn {
+            padding: 12px 24px;
+            background: #0066cc;
+            color: white;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: background 0.3s;
+        }
+
+        .nav-btn:hover {
+            background: #0052a3;
+            text-decoration: none;
+        }
+
+        .nav-btn-back {
+            background: #6c757d;
+        }
+
+        .nav-btn-back:hover {
+            background: #5a6268;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .grid-cols-2 {
+                grid-template-columns: 1fr;
+            }
+
+            .section-title {
+                font-size: 2rem;
+            }
+
+            .section-subtitle {
+                font-size: 1.2rem;
+            }
+
+            .container {
+                padding: 10px;
+            }
+        }
+
+        /* Additional practical styles */
+        /* Додаткові стилі для практичної роботи */
+        .task-box {
+            background: #f8f9fa;
+            border-left: 4px solid #0066cc;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+
+        .info-box {
+            background: #e8f4fd;
+            border: 1px solid #bee5eb;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 6px;
+        }
+
+        .warning-box {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 6px;
+            color: #856404;
+        }
+
+        .success-box {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 6px;
+        }
+
+        .danger-box {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 6px;
+            color: #721c24;
+        }
+
+        .code-diagram {
+            background: #2d2d2d;
+            color: #10b981;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+
+        .code-block {
+            background: #f4f4f4;
+            border: 1px solid #ddd;
+            border-left: 3px solid #0066cc;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+
+        .step-card {
+            background: white;
+            border: 2px solid #0066cc;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+        }
+
+        .step-number {
+            display: inline-block;
+            width: 35px;
+            height: 35px;
+            background: #0066cc;
+            color: white;
+            text-align: center;
+            line-height: 35px;
+            border-radius: 50%;
+            margin-right: 10px;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+
+        .example-box {
+            background: #f0f8ff;
+            border: 1px dashed #0066cc;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+
+        .badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+
+        .badge-points {
+            background-color: #28a745;
+            color: #fff;
+        }
+
+        .badge-bonus {
+            background-color: #ffc107;
+            color: #000;
+        }
+
+        .query-example {
+            background: #282c34;
+            color: #61dafb;
+            padding: 10px 15px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            margin: 10px 0;
+        }
+
+        .screenshot-placeholder {
+            background: #e9ecef;
+            border: 2px dashed #6c757d;
+            padding: 40px;
+            text-align: center;
+            color: #6c757d;
+            margin: 15px 0;
+            border-radius: 8px;
+        }
+
+        .checklist {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .checklist li:before {
+            content: "✅ ";
+            margin-right: 8px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <!-- Breadcrumb Navigation -->
+    <nav class="breadcrumb">
+        <a href="#">🏠 Головна</a>
+        <span class="breadcrumb-separator">→</span>
+        <a href="#">Модуль: Банківські IT системи</a>
+        <span class="breadcrumb-separator">→</span>
+        <span>Практична робота: ELK Stack</span>
+    </nav>
+
+    <!-- Header -->
+    <header class="section-header text-center mb-8">
+        <h1 class="section-title">📊 Практична робота</h1>
+        <h2 class="section-subtitle">Аналіз логів банківських систем з використанням ELK Stack</h2>
+        <p class="text-secondary">Навчимося виявляти шахрайство, аналізувати безпеку та створювати професійні дашборди</p>
+    </header>
+
+    <!-- Main Content -->
+    <main class="practical-content">
+        <!-- Info Card -->
+        <div class="card mb-8">
+            <div class="card-header">
+                <h3 class="card-title">📋 Загальна інформація</h3>
+            </div>
+            <div class="card-body">
+                <div class="grid grid-cols-2 gap-4 mb-6">
+                    <div>
+                        <strong>Тривалість:</strong> 4-6 годин
+                    </div>
+                    <div>
+                        <strong>Рівень:</strong> Intermediate
+                    </div>
+                    <div>
+                        <strong>Дані:</strong> 80,000+ транзакцій
+                    </div>
+                    <div>
+                        <strong>Максимум балів:</strong> 100 + 25 бонус
+                    </div>
+                </div>
+
+                <div class="alert alert-info">
+                    <div class="alert-title">🎯 Чого ви навчитеся</div>
+                    <ol>
+                        <li>Налаштовувати ELK Stack (Elasticsearch, Logstash, Kibana) за допомогою Docker</li>
+                        <li>Обробляти великі обсяги логів (80,000+ записів) банківських систем</li>
+                        <li>Писати запити мовою KQL (Kibana Query Language) для пошуку даних</li>
+                        <li>Створювати професійні візуалізації: графіки, карти, діаграми</li>
+                        <li>Будувати інтерактивні дашборди для моніторингу</li>
+                        <li>Виявляти шахрайство та brute force атаки в логах</li>
+                        <li>Аналізувати продуктивність систем та бізнес-метрики</li>
+                    </ol>
+                </div>
+
+                <div class="success-box">
+                    <strong>✨ Реальні навики для роботи:</strong>
+                    <p>ELK Stack використовується в Netflix, LinkedIn, eBay, JPMorgan Chase та тисячах інших компаній. Спеціалісти з ELK Stack заробляють від $40,000 до $120,000 на рік.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content Sections -->
+        <section>
+            <h2>📚 Що таке ELK Stack?</h2>
+
+            <div class="info-box">
+                <h4>ELK Stack - це набір з трьох інструментів:</h4>
+
+                <p><strong>E = Elasticsearch</strong> - Розподілена пошукова та аналітична система. Швидкість: мільйони записів за секунди. Повнотекстовий пошук.</p>
+
+                <p><strong>L = Logstash</strong> - Інструмент для збору та обробки логів. Фільтрація та збагачення даних. Гео-IP lookup, парсинг, детекція аномалій.</p>
+
+                <p><strong>K = Kibana</strong> - Інструмент візуалізації даних. Інтерактивні дашборди. Аналітика в реальному часі.</p>
+            </div>
+
+            <div class="code-diagram">
+<pre>
+АРХІТЕКТУРА СИСТЕМИ:
+
+   ┌──────────────┐
+   │ Banking App  │  🏦 Банківський додаток
+   │ (Simulator)  │     генерує логи
+   └──────┬───────┘
+          │ JSON logs
+          ▼
+   ┌──────────────┐
+   │  LOGSTASH    │  🔄 Обробка:
+   │  Pipeline    │     • Парсинг JSON
+   └──────┬───────┘     • Geo-IP lookup
+          │             • Детекція аномалій
+          ▼
+   ┌──────────────┐
+   │ELASTICSEARCH │  📊 Зберігання та пошук
+   │   Cluster    │     • Індексація
+   └──────┬───────┘     • Full-text search
+          │
+          ▼
+   ┌──────────────┐
+   │   KIBANA     │  📈 Візуалізація
+   │  Dashboard   │     • Графіки
+   └──────────────┘     • Дашборди
+                        • Алерти
+</pre>
+            </div>
+
+            <div class="warning-box">
+                <h4>🏦 Реальна проблема в банках:</h4>
+                <p>Банки генерують МІЛЬЙОНИ логів щодня. Серед них потрібно знайти:</p>
+                <ul>
+                    <li>Шахрайські транзакції (0.1% від загальної кількості)</li>
+                    <li>Brute force атаки на клієнтські акаунти</li>
+                    <li>Підозрілі операції з великими сумами</li>
+                    <li>Проблеми з продуктивністю систем</li>
+                </ul>
+                <p><strong>Питання:</strong> Як знайти 100 шахрайських транзакцій серед 1,000,000 записів за 5 секунд?</p>
+                <p><strong>Відповідь:</strong> ELK Stack!</p>
+            </div>
+        </section>
+
+        <!-- Частина 1: Встановлення -->
+        <section>
+            <h2>⚙️ Частина 1: Встановлення та налаштування</h2>
+
+            <div class="warning-box">
+                <h4>Системні вимоги:</h4>
+                <ul>
+                    <li><strong>RAM:</strong> 8 GB (мінімум 4 GB)</li>
+                    <li><strong>CPU:</strong> 2+ ядра</li>
+                    <li><strong>Диск:</strong> 10 GB вільного місця</li>
+                    <li><strong>ОС:</strong> Windows 10/11, Linux, або macOS</li>
+                </ul>
+            </div>
+
+            <!-- Крок 1.1 -->
+            <div class="step-card">
+                <h3><span class="step-number">1.1</span>Встановлення Docker</h3>
+
+                <p><strong>Docker Desktop</strong> - це платформа для запуску контейнеризованих додатків.</p>
+
+                <div class="task-box">
+                    <h4>Windows:</h4>
+                    <ol>
+                        <li>Завантажте Docker Desktop: <a href="https://www.docker.com/products/docker-desktop" target="_blank">https://www.docker.com/products/docker-desktop</a></li>
+                        <li>Запустіть інсталятор і дотримуйтесь інструкцій</li>
+                        <li>Після встановлення перезавантажте комп'ютер</li>
+                        <li>Запустіть Docker Desktop і дочекайтесь зеленої іконки в трею</li>
+                    </ol>
+
+                    <h4>Linux (Ubuntu/Debian):</h4>
+                    <div class="code-block">
+# Оновити систему
+sudo apt update && sudo apt upgrade
+
+# Встановити Docker
+curl -fsSL https://get.docker.com -o get-docker.sh
+sudo sh get-docker.sh
+
+# Додати користувача до групи docker
+sudo usermod -aG docker $USER
+
+# Встановити Docker Compose
+sudo apt install docker-compose
+
+# Перезавантажити сесію
+newgrp docker
+                    </div>
+                </div>
+
+                <div class="success-box">
+                    <h4>Перевірка встановлення:</h4>
+                    <div class="code-block">
+docker --version
+docker-compose --version
+                    </div>
+                    <p><strong>Очікуваний результат:</strong></p>
+                    <div class="code-block">
+Docker version 24.x.x
+docker-compose version 1.29.x або 2.x.x
+                    </div>
+                </div>
+            </div>
+
+            <!-- Крок 1.2 -->
+            <div class="step-card">
+                <h3><span class="step-number">1.2</span>Завантаження проекту</h3>
+
+                <p>Завантажте проект з репозиторію або отримайте від викладача.</p>
+
+                <div class="code-block">
+# Якщо є Git:
+git clone &lt;repository-url&gt;
+cd bi_log_analysis
+
+# Або розпакуйте ZIP архів у робочу директорію
+                </div>
+            </div>
+
+            <!-- Крок 1.3 -->
+            <div class="step-card">
+                <h3><span class="step-number">1.3</span>Встановлення Python залежностей</h3>
+
+                <div class="code-block">
+# Перевірка Python
+python --version
+# або
+python3 --version
+
+# Встановлення залежностей
+pip install -r requirements.txt
+# або
+pip3 install -r requirements.txt
+                </div>
+            </div>
+
+            <!-- Крок 1.4 -->
+            <div class="step-card">
+                <h3><span class="step-number">1.4</span>Запуск ELK Stack</h3>
+
+                <div class="success-box">
+                    <h4>✨ Автоматичний спосіб (рекомендовано):</h4>
+
+                    <p><strong>Windows:</strong></p>
+                    <div class="code-block">setup.bat</div>
+
+                    <p><strong>Linux/Mac:</strong></p>
+                    <div class="code-block">
+chmod +x setup.sh
+./setup.sh
+                    </div>
+
+                    <p><strong>Що робить скрипт:</strong></p>
+                    <ul class="checklist">
+                        <li>Запускає Docker контейнери (Elasticsearch, Logstash, Kibana)</li>
+                        <li>Чекає готовності Elasticsearch (~30-60 секунд)</li>
+                        <li>Застосовує налаштування індексу</li>
+                        <li>Генерує 10,000 тестових логів</li>
+                    </ul>
+
+                    <p><strong>⏱️ Час виконання:</strong> 2-3 хвилини</p>
+                </div>
+
+                <div class="info-box">
+                    <h4>Ручний спосіб (якщо автоматичний не спрацював):</h4>
+                    <div class="code-block">
+# 1. Запустити контейнери
+docker-compose up -d
+
+# 2. Перевірити статус (всі 3 мають бути "Up")
+docker-compose ps
+
+# 3. Дочекатися Elasticsearch (30-60 секунд)
+curl http://localhost:9200
+
+# 4. Застосувати налаштування
+python setup_elasticsearch.py
+
+# 5. Згенерувати дані
+python generate_logs.py -n 10000
+                    </div>
+                </div>
+            </div>
+
+            <!-- Крок 1.5 -->
+            <div class="step-card">
+                <h3><span class="step-number">1.5</span>Перевірка доступності сервісів</h3>
+
+                <p>Відкрийте у браузері:</p>
+
+                <table>
+                    <thead>
+                    <tr>
+                        <th>Сервіс</th>
+                        <th>URL</th>
+                        <th>Що побачите</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td><strong>Elasticsearch</strong></td>
+                        <td><a href="http://localhost:9200" target="_blank">http://localhost:9200</a></td>
+                        <td>JSON відповідь з версією та статусом</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Kibana</strong></td>
+                        <td><a href="http://localhost:5601" target="_blank">http://localhost:5601</a></td>
+                        <td>Головний екран Kibana (30-60 сек завантаження)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Logstash</strong></td>
+                        <td><a href="http://localhost:9600" target="_blank">http://localhost:9600</a></td>
+                        <td>JSON статус Logstash</td>
+                    </tr>
+                    </tbody>
+                </table>
+
+                <div class="success-box">
+                    <p><strong>✅ Якщо всі три сервіси доступні - можна продовжувати!</strong></p>
+                </div>
+            </div>
+
+            <!-- Крок 1.6 -->
+            <div class="step-card">
+                <h3><span class="step-number">1.6</span>Створення Data View в Kibana</h3>
+
+                <p><strong>Data View</strong> - це спосіб, яким Kibana "бачить" ваші дані.</p>
+
+                <div class="example-box">
+                    <h4>Покрокова інструкція:</h4>
+                    <ol>
+                        <li>Відкрийте Kibana: <a href="http://localhost:5601" target="_blank">http://localhost:5601</a></li>
+                        <li>Натисніть на <strong>☰</strong> (меню гамбургер) у верхньому лівому куті</li>
+                        <li>Прокрутіть вниз до <strong>Management</strong> → <strong>Stack Management</strong></li>
+                        <li>У лівій панелі під розділом <strong>Kibana</strong> натисніть <strong>Data Views</strong></li>
+                        <li>Натисніть <strong>"Create data view"</strong> (синя кнопка)</li>
+                        <li>Заповніть форму:
+                            <ul>
+                                <li><strong>Name:</strong> <code>Banking Logs</code></li>
+                                <li><strong>Index pattern:</strong> <code>banking-logs-*</code></li>
+                                <li><strong>Timestamp field:</strong> Виберіть <code>@timestamp</code></li>
+                            </ul>
+                        </li>
+                        <li>Натисніть <strong>"Save data view to Kibana"</strong></li>
+                    </ol>
+                </div>
+
+                <div class="success-box">
+                    <p><strong>Очікуваний результат:</strong> Ви побачите список з 90+ полів: amount, status, transaction_type, country, тощо.</p>
+                </div>
+
+                <div class="screenshot-placeholder">
+                    📸 Зробіть скріншот створеного Data View для звіту
+                </div>
+            </div>
+        </section>
+
+        <!-- Частина 2: Дані -->
+        <section>
+            <h2>💾 Частина 2: Генерація та розуміння даних</h2>
+
+            <div class="info-box">
+                <h4>80,000+ банківських транзакцій</h4>
+                <p>Система генерує реалістичні дані для аналізу:</p>
+            </div>
+
+            <table>
+                <thead>
+                <tr>
+                    <th>Тип події</th>
+                    <th>Відсоток</th>
+                    <th>Що включає</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td><strong>📱 Транзакції</strong></td>
+                    <td>40%</td>
+                    <td>Оплати картками (VISA, Mastercard), онлайн-платежі, USD/EUR/GBP/UAH</td>
+                </tr>
+                <tr>
+                    <td><strong>🔐 Автентифікація</strong></td>
+                    <td>25%</td>
+                    <td>Входи в систему, 2FA, біометрія, OTP. 3% - brute force атаки</td>
+                </tr>
+                <tr>
+                    <td><strong>🏧 ATM операції</strong></td>
+                    <td>20%</td>
+                    <td>Зняття готівки, депозити, перевірка балансу, зміна PIN</td>
+                </tr>
+                <tr>
+                    <td><strong>💸 Перекази</strong></td>
+                    <td>10%</td>
+                    <td>Внутрішні, зовнішні, міжнародні перекази</td>
+                </tr>
+                <tr>
+                    <td><strong>💰 Запити балансу</strong></td>
+                    <td>5%</td>
+                    <td>Перевірка стану рахунку</td>
+                </tr>
+                </tbody>
+            </table>
+
+            <div class="danger-box">
+                <h4>⚠️ Симульовані аномалії в даних:</h4>
+                <ul>
+                    <li><strong>5%</strong> підозрілих транзакцій (<code>suspicious: true</code>)</li>
+                    <li><strong>~1000</strong> випадків шахрайства (<code>is_fraud: true</code>)</li>
+                    <li><strong>3%</strong> brute force атак (<code>is_brute_force: true</code>)</li>
+                    <li>Великі транзакції (&gt;$10,000)</li>
+                    <li>Невдалі високовартісні операції</li>
+                </ul>
+                <p><strong>Ваше завдання:</strong> Знайти ці аномалії!</p>
+            </div>
+
+            <div class="step-card">
+                <h3><span class="step-number">2.1</span>Генерація додаткових даних (опціонально)</h3>
+
+                <p>Якщо потрібно більше даних для аналізу:</p>
+
+                <div class="code-block">
+# Генерувати 50,000 записів
+python generate_logs.py -n 50000
+
+# Генерувати у інший файл
+python generate_logs.py -o logs/more_data.log -n 20000
+                </div>
+
+                <div class="info-box">
+                    <p><strong>Важливо:</strong> Після генерації Logstash автоматично обробить нові файли. Зачекайте 1-2 хвилини.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Частина 3: Пошук -->
+        <section>
+            <h2>🔍 Частина 3: Робота з Kibana - Пошук даних (15 балів)</h2>
+
+            <div class="step-card">
+                <h3><span class="step-number">3.1</span>Відкриття Discover</h3>
+
+                <ol>
+                    <li>Відкрийте Kibana: <a href="http://localhost:5601" target="_blank">http://localhost:5601</a></li>
+                    <li>Натисніть <strong>☰</strong> → <strong>Analytics</strong> → <strong>Discover</strong></li>
+                    <li>Переконайтеся, що вибрано <strong>"Banking Logs"</strong> (випадаючий список вгорі зліва)</li>
+                    <li>Встановіть часовий діапазон:
+                        <ul>
+                            <li>Натисніть на <strong>календар</strong> у верхньому правому куті</li>
+                            <li>Виберіть <strong>"Last 30 days"</strong></li>
+                            <li>Натисніть <strong>"Update"</strong></li>
+                        </ul>
+                    </li>
+                </ol>
+
+                <div class="success-box">
+                    <p><strong>Ви повинні побачити:</strong> Список транзакцій та цифру ~80,000 hits</p>
+                </div>
+            </div>
+
+            <div class="step-card">
+                <h3><span class="step-number">3.2</span>Базове дослідження даних</h3>
+
+                <div class="task-box">
+                    <h4>📝 Завдання для перевірки (запишіть відповіді):</h4>
+
+                    <ol>
+                        <li><strong>Скільки всього записів у системі?</strong>
+                            <br>Відповідь: _______________
+                        </li>
+
+                        <li><strong>Які типи транзакцій найбільш поширені?</strong>
+                            <br>Підказка: Знайдіть поле <code>transaction_type</code> у лівій панелі та натисніть на нього
+                            <br>Найпопулярніший тип: _______________
+                        </li>
+
+                        <li><strong>Знайдіть транзакцію з найбільшою сумою:</strong>
+                            <br>Підказка: Клікніть на поле <code>amount</code> та відсортуйте за спаданням
+                            <br>Максимальна сума: $_____________
+                        </li>
+                    </ol>
+                </div>
+            </div>
+
+            <div class="step-card">
+                <h3><span class="step-number">3.3</span>Пошукові запити (KQL)</h3>
+
+                <p><strong>KQL (Kibana Query Language)</strong> - мова для пошуку даних. Виконайте наступні запити:</p>
+
+                <div class="task-box">
+                    <h4>Запит 1: Всі невдалі транзакції</h4>
+                    <div class="query-example">status: "failed"</div>
+                    <p>Скільки невдалих транзакцій? _______________</p>
+                </div>
+
+                <div class="task-box">
+                    <h4>Запит 2: Транзакції більше $1000</h4>
+                    <div class="query-example">amount &gt; 1000</div>
+                    <p>Скільки знайдено? _______________</p>
+                </div>
+
+                <div class="task-box">
+                    <h4>Запит 3: Підозрілі транзакції</h4>
+                    <div class="query-example">suspicious: true</div>
+                    <p>Кількість: _______________</p>
+                </div>
+
+                <div class="task-box">
+                    <h4>Запит 4: Невдалі спроби автентифікації</h4>
+                    <div class="query-example">transaction_type: "authentication" AND status: "failed"</div>
+                    <p>Кількість: _______________</p>
+                </div>
+
+                <div class="task-box">
+                    <h4>Запит 5: ATM операції в Києві</h4>
+                    <div class="query-example">transaction_type: "atm" AND atm_location: "Kyiv Central"</div>
+                    <p>Кількість: _______________</p>
+                </div>
+
+                <div class="task-box">
+                    <h4>Запит 6: USD транзакції більше $5000</h4>
+                    <div class="query-example">currency: "USD" AND amount &gt; 5000</div>
+                    <p>Кількість: _______________</p>
+                </div>
+
+                <div class="task-box">
+                    <h4>Запит 7: Повільні операції (більше 1 секунди)</h4>
+                    <div class="query-example">response_time_ms &gt; 1000</div>
+                    <p>Кількість: _______________</p>
+                </div>
+            </div>
+
+            <div class="step-card">
+                <h3><span class="step-number">3.4</span>Самостійні завдання з пошуку</h3>
+
+                <div class="task-box">
+                    <h4>Завдання 1: Міжнародні перекази</h4>
+                    <p>Підказка: <code>transaction_type: "transfer" AND transfer_type: "international"</code></p>
+                    <p>Відповідь: _______________</p>
+                </div>
+
+                <div class="task-box">
+                    <h4>Завдання 2: Транзакції VISA &gt; $10,000</h4>
+                    <p>Підказка: використайте поля <code>card_type</code> та <code>amount</code></p>
+                    <p>Ваш запит: _______________</p>
+                    <p>Кількість: _______________</p>
+                </div>
+
+                <div class="task-box">
+                    <h4>Завдання 3: IP з найбільшою кількістю невдалих входів</h4>
+                    <p>Підказка: спочатку відфільтруйте невдалі автентифікації, потім подивіться на поле <code>client_ip</code></p>
+                    <p>IP-адреса: _______________</p>
+                    <p>Кількість спроб: _______________</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Частина 4: Візуалізації -->
+        <section>
+            <h2>📊 Частина 4: Створення візуалізацій (25 балів - по 5 за кожну)</h2>
+
+            <p>Створимо 5 візуалізацій для аналізу даних:</p>
+
+            <div class="info-box">
+                <h4>💡 Важливо про Lens редактор в Kibana 8.x</h4>
+                <p><strong>Lens</strong> - це новий візуальний редактор в Kibana 8.x. Він працює за принципом drag-and-drop (перетягування полів).</p>
+                <p><strong>Основні зони в Lens:</strong></p>
+                <ul>
+                    <li><strong>Horizontal axis</strong> (X-axis) - горизонтальна вісь (зазвичай час або категорії)</li>
+                    <li><strong>Vertical axis</strong> (Y-axis) - вертикальна вісь (зазвичай метрики: Count, Sum, Average тощо)</li>
+                    <li><strong>Break down by</strong> - розбивка за категорією (різні кольори/лінії)</li>
+                    <li><strong>Slice by</strong> - для pie charts (сектори кола)</li>
+                </ul>
+                <p><strong>⚡ Важливо:</strong> Коли ви перетягуєте поле на вісь, Kibana <em>зазвичай</em> автоматично додає метрику "Count" (підрахунок записів). Але іноді потрібно додати її вручну:</p>
+                <ul>
+                    <li>Якщо бачите порожню зону - клікніть на неї</li>
+                    <li>Виберіть "Count" або інший тип агрегації</li>
+                    <li>Перевіряйте, чи всі зони заповнені перед збереженням</li>
+                </ul>
+                <p><em>Якщо Lens здається складним - використовуйте альтернативний метод "Aggregation based", який описаний для кожної візуалізації.</em></p>
+            </div>
+
+            <!-- Візуалізація 1 -->
+            <div class="step-card">
+                <h3><span class="step-number">4.1</span>Візуалізація 1: Обсяг транзакцій за часом <span class="badge badge-points">5 балів</span></h3>
+
+                <p><strong>Тип:</strong> Line Chart | <strong>Мета:</strong> Побачити тренди транзакцій</p>
+
+                <div class="example-box">
+                    <h4>Покрокові інструкції:</h4>
+                    <ol>
+                        <li>Натисніть <strong>☰</strong> → <strong>Analytics</strong> → <strong>Visualize Library</strong></li>
+                        <li>Натисніть <strong>"Create visualization"</strong></li>
+                        <li><strong>ВАЖЛИВО:</strong> Виберіть <strong>"Lens"</strong> (це новий редактор візуалізацій у Kibana 8.x)
+                            <br><em>Або виберіть "Aggregation based" → "Line" якщо бачите таку опцію</em>
+                        </li>
+                        <li>Виберіть data view: <strong>"Banking Logs"</strong> або <strong>"banking-logs-*"</strong></li>
+                        <li><strong>У Lens редакторі:</strong>
+                            <ul>
+                                <li>Зверху справа натисніть на іконку типу графіку (за замовчуванням Bar)</li>
+                                <li>Виберіть <strong>"Line"</strong> з випадаючого списку</li>
+                                <li><strong>Horizontal axis (X-axis):</strong> Перетягніть поле <code>@timestamp</code> в зону "Horizontal axis"</li>
+                                <li><strong>Vertical axis (Y-axis):</strong>
+                                    <ul>
+                                        <li>Перевірте зону "Vertical axis" (ліворуч або внизу)</li>
+                                        <li>Якщо там вже є <strong>"Count of records"</strong> або <strong>"Count"</strong> - відмінно! ✅</li>
+                                        <li>Якщо зона порожня: натисніть на неї або на кнопку "+" (Drop a field here)</li>
+                                        <li>Виберіть <strong>"Count"</strong> з випадаючого списку або просто клікніть - Count додасться автоматично</li>
+                                    </ul>
+                                </li>
+                                <li><strong>Break down by:</strong> Перетягніть поле <code>transaction_type</code> в зону "Break down by"</li>
+                            </ul>
+                        </li>
+                        <li><strong>Збережіть:</strong>
+                            <ul>
+                                <li>Натисніть "Save" (вгорі справа)</li>
+                                <li>Title: <code>Transaction Volume Over Time</code></li>
+                                <li>Виберіть "Save and add to library"</li>
+                                <li>Натисніть "Save"</li>
+                            </ul>
+                        </li>
+                    </ol>
+                </div>
+
+                <div class="info-box">
+                    <h4>💡 Альтернативний спосіб (якщо Lens складний):</h4>
+                    <p>Якщо Lens редактор здається складним, спробуйте:</p>
+                    <ol>
+                        <li>Create visualization → <strong>"Aggregation based"</strong></li>
+                        <li>Виберіть <strong>"Area"</strong> або <strong>"Line"</strong> (якщо доступно)</li>
+                        <li>Data source: banking-logs-*</li>
+                        <li>Metrics: Count</li>
+                        <li>Buckets: X-Axis → Date Histogram → Field: @timestamp</li>
+                        <li>Buckets: Split Series → Terms → Field: transaction_type.keyword → Size: 5</li>
+                        <li>Натисніть ▶️ (Apply changes)</li>
+                    </ol>
+                </div>
+
+                <div class="success-box">
+                    <p><strong>✅ Що ви повинні побачити:</strong> 5 різних ліній (різні кольори) для кожного типу транзакції</p>
+                </div>
+
+                <div class="screenshot-placeholder">
+                    📸 Зробіть скріншот візуалізації для звіту
+                </div>
+            </div>
+
+            <!-- Візуалізація 2 -->
+            <div class="step-card">
+                <h3><span class="step-number">4.2</span>Візуалізація 2: Розподіл статусів транзакцій <span class="badge badge-points">5 балів</span></h3>
+
+                <p><strong>Тип:</strong> Pie Chart | <strong>Мета:</strong> Показати відсоток успішних vs невдалих</p>
+
+                <div class="example-box">
+                    <h4>Інструкції:</h4>
+                    <ol>
+                        <li>"Create visualization" → <strong>"Lens"</strong></li>
+                        <li>Data view: <strong>"Banking Logs"</strong></li>
+                        <li>Зверху справа виберіть тип візуалізації <strong>"Donut"</strong> або <strong>"Pie"</strong></li>
+                        <li>Перетягніть поле <code>status</code> в зону <strong>"Slice by"</strong> або <strong>"Break down by"</strong></li>
+                        <li><strong>Метрика (Size by):</strong>
+                            <ul>
+                                <li>Перевірте зону "Size by" або "Metric"</li>
+                                <li>Там має бути <strong>"Count of records"</strong> - якщо є, чудово! ✅</li>
+                                <li>Якщо порожньо: клікніть на зону і виберіть "Count"</li>
+                            </ul>
+                        </li>
+                        <li>Ви побачите 3 сектори: success, failed, pending</li>
+                        <li><strong>Збережіть:</strong> Title: <code>Transaction Status Distribution</code></li>
+                    </ol>
+
+                    <p><em><strong>Альтернатива:</strong> Aggregation based → Pie → Buckets: Split Slices → Terms → Field: status</em></p>
+                </div>
+
+                <div class="screenshot-placeholder">
+                    📸 Зробіть скріншот
+                </div>
+            </div>
+
+            <!-- Візуалізація 3 -->
+            <div class="step-card">
+                <h3><span class="step-number">4.3</span>Візуалізація 3: Топ-10 мерчантів <span class="badge badge-points">5 балів</span></h3>
+
+                <p><strong>Тип:</strong> Bar Horizontal | <strong>Мета:</strong> Показати найпопулярніші магазини</p>
+
+                <div class="example-box">
+                    <h4>Інструкції:</h4>
+                    <ol>
+                        <li>"Create visualization" → <strong>"Lens"</strong></li>
+                        <li>Data view: <strong>"Banking Logs"</strong></li>
+                        <li>Виберіть тип візуалізації <strong>"Bar horizontal"</strong> (зверху справа)</li>
+                        <li><strong>ВАЖЛИВО! Додайте фільтр:</strong>
+                            <ul>
+                                <li>Вгорі натисніть "Add filter" (+ іконка)</li>
+                                <li>Field: <code>transaction_type</code>, Operator: <code>is</code>, Value: <code>transaction</code></li>
+                                <li>Натисніть "Save"</li>
+                            </ul>
+                        </li>
+                        <li>Перетягніть поле <code>merchant</code> в зону <strong>"Vertical axis"</strong> або <strong>"Break down by"</strong></li>
+                        <li><strong>Horizontal axis (метрика):</strong>
+                            <ul>
+                                <li>Перевірте, чи є в зоні "Horizontal axis" значення "Count"</li>
+                                <li>Якщо є - відмінно! ✅ Якщо ні - клікніть на зону і додайте "Count"</li>
+                            </ul>
+                        </li>
+                        <li>У налаштуваннях поля merchant → Advanced → Number of values: <strong>10</strong></li>
+                        <li><strong>Збережіть:</strong> Title: <code>Top 10 Merchants</code></li>
+                    </ol>
+
+                    <p><em><strong>Альтернатива:</strong> Aggregation based → Horizontal Bar → Buckets: Y-Axis → Terms → Field: merchant → Size: 10</em></p>
+                </div>
+
+                <div class="screenshot-placeholder">
+                    📸 Зробіть скріншот
+                </div>
+            </div>
+
+            <!-- Візуалізація 4 -->
+            <div class="step-card">
+                <h3><span class="step-number">4.4</span>Візуалізація 4: Географічний розподіл <span class="badge badge-points">5 балів</span></h3>
+
+                <p><strong>Тип:</strong> Map | <strong>Мета:</strong> Показати транзакції на карті світу</p>
+
+                <div class="example-box">
+                    <h4>Інструкції:</h4>
+                    <ol>
+                        <li>"Create visualization" → <strong>"Maps"</strong> (не Lens, а окрема опція Maps)</li>
+                        <li>Якщо відразу відкривається карта, натисніть <strong>"Add layer"</strong> (ліва панель)</li>
+                        <li>Виберіть <strong>"Documents"</strong> або <strong>"Clusters and grids"</strong></li>
+                        <li>Index pattern: <code>banking-logs-*</code></li>
+                        <li><strong>Geospatial field:</strong> Виберіть <code>geo.location</code>
+                            <br><em>Якщо не бачите це поле, спробуйте: <code>geo.geo.location</code></em>
+                        </li>
+                        <li>Натисніть "Add layer" або "Add and continue"</li>
+                        <li><strong>Опціонально:</strong> У налаштуваннях шару (Layer settings) → "Tooltip fields" додайте: country, amount, status</li>
+                        <li><strong>Збережіть:</strong> Save → Title: <code>Geographic Distribution</code></li>
+                    </ol>
+                </div>
+
+                <div class="warning-box">
+                    <p><strong>⚠️ Якщо geo.location не працює:</strong></p>
+                    <p>Ця візуалізація може не працювати ідеально, бо geo.location може бути налаштований неправильно. В такому разі:</p>
+                    <ul>
+                        <li>Створіть просту візуалізацію країн: Lens → Bar chart → Field: <code>country</code></li>
+                        <li>Або пропустіть цю візуалізацію і створіть іншу на вибір</li>
+                    </ul>
+                </div>
+
+                <div class="screenshot-placeholder">
+                    📸 Зробіть скріншот
+                </div>
+            </div>
+
+            <!-- Візуалізація 5 -->
+            <div class="step-card">
+                <h3><span class="step-number">4.5</span>Візуалізація 5: Метрики безпеки <span class="badge badge-points">5 балів</span></h3>
+
+                <p><strong>Тип:</strong> Metric | <strong>Мета:</strong> Показати ключові показники безпеки</p>
+
+                <div class="example-box">
+                    <h4>Інструкції (Lens):</h4>
+                    <ol>
+                        <li>"Create visualization" → <strong>"Lens"</strong></li>
+                        <li>Виберіть тип візуалізації <strong>"Metric"</strong> (зверху справа)</li>
+                        <li><strong>Створення метрик:</strong>
+                            <ul>
+                                <li>Перевірте зону "Primary metric" - там має бути "Count of records"</li>
+                                <li>Якщо зона порожня: клікніть на неї і виберіть "Count"</li>
+                                <li>Натисніть "+ Add filter" вгорі (іконка воронки або плюс)</li>
+                                <li><strong>Фільтр 1:</strong> <code>suspicious: true</code> → Save</li>
+                                <li>Клікніть на "Count of records" або "Count" → Custom label: <code>Suspicious Transactions</code></li>
+                            </ul>
+                        </li>
+                        <li><strong>Додати більше метрик:</strong>
+                            <ul>
+                                <li>Натисніть "+ Add or drag-and-drop a field" для другої метрики</li>
+                                <li>Додайте фільтр <code>is_fraud: true</code></li>
+                                <li>Label: <code>Fraud Detected</code></li>
+                                <li>Повторіть для <code>is_brute_force: true</code>, label: <code>Brute Force Attacks</code></li>
+                            </ul>
+                        </li>
+                        <li><strong>Збережіть:</strong> Title: <code>Security Metrics</code></li>
+                    </ol>
+                </div>
+
+                <div class="warning-box">
+                    <h4>⚠️ Простіше рішення (рекомендовано):</h4>
+                    <p>Якщо створити 3 метрики в одній візуалізації складно, <strong>створіть 3 окремі Metric візуалізації:</strong></p>
+                    <ol>
+                        <li><strong>Metric 1:</strong> Lens → Metric → Filter: <code>suspicious: true</code> → Save as "Suspicious Count"</li>
+                        <li><strong>Metric 2:</strong> Lens → Metric → Filter: <code>is_fraud: true</code> → Save as "Fraud Count"</li>
+                        <li><strong>Metric 3:</strong> Lens → Metric → Filter: <code>is_brute_force: true</code> → Save as "Brute Force Count"</li>
+                    </ol>
+                    <p>Потім додайте всі 3 на Dashboard поруч одна з одною. <strong>Це зараховується як виконане завдання!</strong></p>
+                </div>
+
+                <div class="info-box">
+                    <h4>💡 Альтернатива (Aggregation based):</h4>
+                    <p>Create visualization → Aggregation based → Metric → Add filters у query bar: <code>suspicious: true</code></p>
+                </div>
+
+                <div class="screenshot-placeholder">
+                    📸 Зробіть скріншот
+                </div>
+            </div>
+        </section>
+
+        <!-- Частина 5: Dashboard -->
+        <section>
+            <h2>🎨 Частина 5: Створення Dashboard (10 балів)</h2>
+
+            <div class="step-card">
+                <h3><span class="step-number">5.1</span>Banking System Overview Dashboard</h3>
+
+                <div class="example-box">
+                    <h4>Покрокові інструкції:</h4>
+                    <ol>
+                        <li>Натисніть <strong>☰</strong> → <strong>Analytics</strong> → <strong>Dashboard</strong></li>
+                        <li>Натисніть <strong>"Create dashboard"</strong></li>
+                        <li>Натисніть <strong>"Add from library"</strong></li>
+                        <li>Виберіть всі 5 створених візуалізацій</li>
+                        <li>Натисніть "Add"</li>
+                        <li><strong>Організуйте панелі:</strong>
+                            <ul>
+                                <li>Перетягуйте панелі для розташування</li>
+                                <li>Змінюйте розмір, тягнучи за кути</li>
+                                <li>Рекомендована структура:
+                                    <ul>
+                                        <li>Вгорі: Security Metrics (маленька)</li>
+                                        <li>Широка: Transaction Volume Over Time</li>
+                                        <li>В ряд: Status Distribution + Geographic Map</li>
+                                        <li>Внизу: Top 10 Merchants</li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </li>
+                        <li><strong>Збережіть Dashboard:</strong>
+                            <ul>
+                                <li>Натисніть "Save"</li>
+                                <li>Name: <code>Banking System Overview</code></li>
+                                <li>Натисніть "Save"</li>
+                            </ul>
+                        </li>
+                    </ol>
+                </div>
+
+                <div class="screenshot-placeholder">
+                    📸 Зробіть скріншот всього Dashboard для звіту
+                </div>
+            </div>
+
+            <div class="step-card">
+                <h3><span class="step-number">5.2</span>Security Monitoring Dashboard <span class="badge badge-bonus">+10 бонус</span></h3>
+
+                <p><strong>Бонусне завдання:</strong> Створіть другий Dashboard, зосереджений на безпеці.</p>
+
+                <div class="task-box">
+                    <h4>Що включити:</h4>
+                    <ol>
+                        <li><strong>Failed Authentication Timeline</strong> (Line chart з фільтром на failed auth)</li>
+                        <li><strong>Top IPs with Failed Logins</strong> (Bar chart - client_ip)</li>
+                        <li><strong>Suspicious Transactions Map</strong> (Map з фільтром suspicious: true)</li>
+                        <li><strong>Brute Force Attacks Over Time</strong> (Area chart з фільтром is_brute_force)</li>
+                        <li><strong>Failed High-Value Transactions</strong> (Table з фільтром failed + amount &gt; 5000)</li>
+                    </ol>
+                </div>
+
+                <div class="screenshot-placeholder">
+                    📸 Зробіть скріншот Security Dashboard (+10 балів)
+                </div>
+            </div>
+        </section>
+
+        <!-- Частина 6: Аналітичні завдання -->
+        <section>
+            <h2>🎯 Частина 6: Аналітичні завдання (60 балів)</h2>
+
+            <!-- Завдання 6.1 -->
+            <div class="step-card">
+                <h3><span class="step-number">6.1</span>Завдання: Виявлення шахрайства <span class="badge badge-points">15 балів</span></h3>
+
+                <div class="danger-box">
+                    <h4>🚨 Сценарій:</h4>
+                    <p>Ви - аналітик безпеки в банку. Клієнт повідомив про несанкціоновані операції. Знайдіть всі підозрілі транзакції!</p>
+                </div>
+
+                <div class="task-box">
+                    <h4>Завдання:</h4>
+
+                    <p><strong>1. Створіть Saved Search "Potential Fraud"</strong></p>
+                    <p>Запит:</p>
+                    <div class="query-example">(is_fraud: true OR suspicious: true) AND amount &gt; 10000</div>
+
+                    <p><strong>2. Скільки виявлено підозрілих транзакцій &gt; $10,000?</strong></p>
+                    <p>Відповідь: _______________</p>
+
+                    <p><strong>3. З яких 3 країн найбільше підозрілих транзакцій?</strong></p>
+                    <p>Підказка: Подивіться на поле <code>country</code></p>
+                    <ul>
+                        <li>Країна 1: _______________ (кількість: ______)</li>
+                        <li>Країна 2: _______________ (кількість: ______)</li>
+                        <li>Країна 3: _______________ (кількість: ______)</li>
+                    </ul>
+
+                    <p><strong>4. Які 3 користувачі найчастіше фігурують у підозрілих транзакціях?</strong></p>
+                    <ul>
+                        <li>user_id 1: _______________ (кількість: ______)</li>
+                        <li>user_id 2: _______________ (кількість: ______)</li>
+                        <li>user_id 3: _______________ (кількість: ______)</li>
+                    </ul>
+
+                    <p><strong>5. Яка середня сума підозрілих транзакцій?</strong></p>
+                    <p>Підказка: Статистика поля <code>amount</code></p>
+                    <p>Відповідь: $_____________</p>
+
+                    <p><strong>6. Створіть візуалізацію "Fraud by Country"</strong></p>
+                    <p>Тип: Bar vertical, X-axis: country, Filter: is_fraud OR suspicious</p>
+                </div>
+
+                <div class="screenshot-placeholder">
+                    📸 Зробіть скріншот візуалізації "Fraud by Country"
+                </div>
+            </div>
+
+            <!-- Завдання 6.2 -->
+            <div class="step-card">
+                <h3><span class="step-number">6.2</span>Завдання: Аналіз Brute Force атак <span class="badge badge-points">20 балів</span></h3>
+
+                <div class="danger-box">
+                    <h4>🚨 Сценарій:</h4>
+                    <p>Хтось намагається зламати акаунти клієнтів! Сотні спроб входу з одного IP. Знайдіть атакуючих!</p>
+                </div>
+
+                <div class="task-box">
+                    <h4>Завдання:</h4>
+
+                    <p><strong>1. Скільки всього невдалих спроб автентифікації?</strong></p>
+                    <p>Запит: <code>transaction_type: "authentication" AND status: "failed"</code></p>
+                    <p>Відповідь: _______________</p>
+
+                    <p><strong>2. Які 5 IP-адрес мають найбільше невдалих спроб входу?</strong></p>
+                    <p>Підказка: Поле <code>client_ip</code></p>
+                    <ul>
+                        <li>IP 1: _______________ (кількість: ______)</li>
+                        <li>IP 2: _______________ (кількість: ______)</li>
+                        <li>IP 3: _______________ (кількість: ______)</li>
+                        <li>IP 4: _______________ (кількість: ______)</li>
+                        <li>IP 5: _______________ (кількість: ______)</li>
+                    </ul>
+
+                    <p><strong>3. Скільки підтверджених brute force атак?</strong></p>
+                    <p>Запит: <code>is_brute_force: true</code></p>
+                    <p>Відповідь: _______________</p>
+
+                    <p><strong>4. Створіть візуалізацію "Brute Force Attacks Timeline"</strong></p>
+                    <p>Тип: Area, Filter: is_brute_force: true</p>
+
+                    <p><strong>5. О якій годині доби найбільше атак?</strong></p>
+                    <p>Відповідь: близько _____ години</p>
+
+                    <p><strong>6. Який метод автентифікації найчастіше атакується?</strong></p>
+                    <p>Підказка: При фільтрі brute force, подивіться <code>auth_method</code></p>
+                    <p>Відповідь: _______________</p>
+                </div>
+
+                <div class="screenshot-placeholder">
+                    📸 Зробіть скріншот візуалізації "Brute Force Timeline"
+                </div>
+            </div>
+
+            <!-- Завдання 6.3 -->
+            <div class="step-card">
+                <h3><span class="step-number">6.3</span>Завдання: Аналіз продуктивності <span class="badge badge-points">15 балів</span></h3>
+
+                <div class="warning-box">
+                    <h4>🐌 Проблема:</h4>
+                    <p>Клієнти скаржаться на повільні транзакції. Деякі операції виконуються 5+ секунд! Знайдіть bottleneck!</p>
+                </div>
+
+                <div class="task-box">
+                    <h4>Завдання:</h4>
+
+                    <p><strong>1. Скільки транзакцій виконувалися більше 2 секунд?</strong></p>
+                    <p>Запит: <code>response_time_ms &gt; 2000</code></p>
+                    <p>Відповідь: _______________</p>
+
+                    <p><strong>2. Створіть візуалізацію "Average Response Time by Service"</strong></p>
+                    <p>Тип: Bar horizontal</p>
+                    <p>Y-axis: service, X-axis: Average of response_time_ms</p>
+
+                    <p><strong>3. Який сервіс найповільніший?</strong></p>
+                    <p>Сервіс: _______________</p>
+                    <p>Середній час: _______ мс</p>
+
+                    <p><strong>4. Який сервіс найшвидший?</strong></p>
+                    <p>Сервіс: _______________</p>
+                    <p>Середній час: _______ мс</p>
+
+                    <p><strong>5. Чи правда, що великі транзакції (&gt;$10,000) виконуються довше?</strong></p>
+                    <p>Середній response_time для amount &gt; 10000: _______ мс</p>
+                    <p>Середній response_time для всіх: _______ мс</p>
+                    <p>Висновок (Так/Ні): _______________</p>
+                </div>
+
+                <div class="screenshot-placeholder">
+                    📸 Зробіть скріншот візуалізації "Response Time by Service"
+                </div>
+            </div>
+
+            <!-- Завдання 6.4 -->
+            <div class="step-card">
+                <h3><span class="step-number">6.4</span>Завдання: Бізнес-аналітика <span class="badge badge-points">15 балів</span></h3>
+
+                <div class="info-box">
+                    <h4>💼 Питання від менеджменту:</h4>
+                    <p>Директор банку хоче зрозуміти: скільки ми заробляємо, які тренди, де проблеми?</p>
+                </div>
+
+                <div class="task-box">
+                    <h4>Завдання:</h4>
+
+                    <p><strong>1. Який середній чек транзакції?</strong></p>
+                    <p>Фільтр: <code>transaction_type: "transaction"</code>, статистика <code>amount</code></p>
+                    <p>Відповідь: $_____________</p>
+
+                    <p><strong>2. Яка категорія мерчантів найпопулярніша?</strong></p>
+                    <p>Поле: <code>merchant_category</code></p>
+                    <p>Категорія: _______________</p>
+                    <p>Кількість транзакцій: _______________</p>
+
+                    <p><strong>3. Який відсоток успішних транзакцій?</strong></p>
+                    <p>Формула: (success / total) × 100%</p>
+                    <p>Відповідь: _______%</p>
+
+                    <p><strong>4. Яка загальна сума транзакцій у USD?</strong></p>
+                    <p>Фільтр: <code>currency: "USD" AND transaction_type: "transaction"</code></p>
+                    <p>Sum of amount: $_____________</p>
+
+                    <p><strong>5. Створіть візуалізацію "Revenue by Currency"</strong></p>
+                    <p>Тип: Pie, Slice by: currency, Metric: Sum of amount</p>
+
+                    <p><strong>6. У якій валюті найбільший об'єм транзакцій?</strong></p>
+                    <p>Валюта: _______________</p>
+                    <p>Сума: $_____________</p>
+                </div>
+
+                <div class="screenshot-placeholder">
+                    📸 Зробіть скріншот візуалізації "Revenue by Currency"
+                </div>
+            </div>
+        </section>
+
+        <!-- Оцінювання -->
+        <section>
+            <h2>📊 Система оцінювання</h2>
+
+            <div class="task-box">
+                <h3>Розподіл балів:</h3>
+
+                <table>
+                    <thead>
+                    <tr>
+                        <th>Завдання</th>
+                        <th>Бали</th>
+                        <th>Що оцінюється</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td><strong>Частина 1-2:</strong> Setup & генерація даних</td>
+                        <td>10</td>
+                        <td>Скріншоти Docker, Kibana, Data View</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Частина 3:</strong> KQL запити</td>
+                        <td>15</td>
+                        <td>7 основних + 3 самостійні запити з результатами</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Частина 4:</strong> 5 Візуалізацій</td>
+                        <td>25</td>
+                        <td>По 5 балів за кожну (скріншоти + опис)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Частина 5:</strong> Dashboard</td>
+                        <td>10</td>
+                        <td>Banking System Overview Dashboard</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Завдання 6.1:</strong> Fraud Detection</td>
+                        <td>15</td>
+                        <td>Аналіз шахрайства, візуалізація</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Завдання 6.2:</strong> Brute Force</td>
+                        <td>20</td>
+                        <td>Виявлення атак, timeline</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Завдання 6.3:</strong> Performance</td>
+                        <td>15</td>
+                        <td>Аналіз продуктивності</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Завдання 6.4:</strong> Business</td>
+                        <td>15</td>
+                        <td>Бізнес-аналітика, revenue</td>
+                    </tr>
+                    <tr style="font-weight: bold; background-color: #e8f4fd;">
+                        <td><strong>ВСЬОГО</strong></td>
+                        <td><strong>100</strong></td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td><strong>БОНУС:</strong> Security Dashboard</td>
+                        <td>+10</td>
+                        <td>Додатковий dashboard безпеки</td>
+                    </tr>
+                    <tr>
+                        <td><strong>БОНУС:</strong> Dev Tools aggregations</td>
+                        <td>+10</td>
+                        <td>3+ aggregation запити в Dev Tools</td>
+                    </tr>
+                    <tr>
+                        <td><strong>БОНУС:</strong> Додаткові візуалізації</td>
+                        <td>+5</td>
+                        <td>3+ extra візуалізації</td>
+                    </tr>
+                    <tr style="font-weight: bold;">
+                        <td><strong>МАКСИМУМ З БОНУСАМИ</strong></td>
+                        <td><strong>125</strong></td>
+                        <td></td>
+                    </tr>
+                    </tbody>
+                </table>
+
+                <div class="success-box">
+                    <h4>Шкала оцінювання:</h4>
+                    <ul>
+                        <li><strong>90-100 балів:</strong> Відмінно (всі завдання виконані правильно)</li>
+                        <li><strong>75-89 балів:</strong> Добре (більшість завдань виконані)</li>
+                        <li><strong>60-74 балів:</strong> Задовільно (основні завдання виконані)</li>
+                        <li><strong>&lt; 60 балів:</strong> Незадовільно (потрібно доробити)</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Вимоги до звіту -->
+        <section>
+            <h2>📄 Вимоги до звіту</h2>
+
+            <div class="task-box">
+                <h3>Структура звіту:</h3>
+
+                <div class="success-box">
+                    <h4>Обов'язкові розділи:</h4>
+                    <ol>
+                        <li><strong>Титульна сторінка</strong> - назва роботи, ПІБ, група, дата</li>
+                        <li><strong>Частина 1-2:</strong> Скріншоти встановлення
+                            <ul>
+                                <li>docker-compose ps (контейнери запущені)</li>
+                                <li>Kibana головна сторінка</li>
+                                <li>Data View зі списком полів</li>
+                            </ul>
+                        </li>
+                        <li><strong>Частина 3:</strong> Результати пошуку
+                            <ul>
+                                <li>Відповіді на всі 10 запитів (7 основних + 3 самостійні)</li>
+                                <li>Кількість знайдених записів для кожного</li>
+                            </ul>
+                        </li>
+                        <li><strong>Частина 4:</strong> Візуалізації
+                            <ul>
+                                <li>Скріншот кожної з 5 візуалізацій</li>
+                                <li>Короткий опис кожної (1-2 речення)</li>
+                            </ul>
+                        </li>
+                        <li><strong>Частина 5:</strong> Dashboard
+                            <ul>
+                                <li>Скріншот Banking System Overview Dashboard</li>
+                                <li>(Опціонально) Security Dashboard</li>
+                            </ul>
+                        </li>
+                        <li><strong>Частина 6:</strong> Аналітичні завдання
+                            <ul>
+                                <li>Відповіді на ВСІ питання з усіх 4 завдань</li>
+                                <li>Скріншоти створених візуалізацій</li>
+                                <li>Короткі висновки (2-3 речення для кожного завдання)</li>
+                            </ul>
+                        </li>
+                        <li><strong>Висновки:</strong> Що нового ви дізналися? (5-7 речень)</li>
+                    </ol>
+                </div>
+
+                <h4>Формат здачі:</h4>
+                <ul>
+                    <li>Документ: <strong>PDF</strong> або Word</li>
+                    <li>Шрифт: Times New Roman, 14</li>
+                    <li>Скріншоти: <strong>Чіткі</strong>, з видимими цифрами та графіками</li>
+                    <li>Обсяг: 15-20 сторінок</li>
+                </ul>
+
+                <div class="warning-box">
+                    <h4>⚠️ Важливо:</h4>
+                    <ul>
+                        <li>НЕ робіть фото екрану телефоном - використовуйте Print Screen!</li>
+                        <li>Скріншоти мають бути ПОВНІ (видно всю візуалізацію)</li>
+                        <li>Всі таблиці і поля мають бути ЗАПОВНЕНІ</li>
+                        <li>Якщо щось не працює - опишіть проблему в звіті</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Troubleshooting -->
+        <section>
+            <h2>🔧 Усунення проблем</h2>
+
+            <div class="danger-box">
+                <h4>❌ Проблема 1: Docker не запускається</h4>
+                <p><strong>Рішення:</strong></p>
+                <ul>
+                    <li><strong>Windows:</strong> Увімкніть віртуалізацію в BIOS, перевірте WSL 2</li>
+                    <li><strong>Linux:</strong> <code>sudo systemctl start docker</code></li>
+                    <li>Перезавантажте комп'ютер</li>
+                </ul>
+            </div>
+
+            <div class="danger-box">
+                <h4>❌ Проблема 2: Kibana не відкривається</h4>
+                <p><strong>Рішення:</strong></p>
+                <ul>
+                    <li>Зачекайте 60 секунд (Kibana завантажується повільно)</li>
+                    <li>Перевірте: <code>docker-compose ps</code> (всі "Up"?)</li>
+                    <li><code>docker-compose restart kibana</code></li>
+                </ul>
+            </div>
+
+            <div class="danger-box">
+                <h4>❌ Проблема 3: Не бачу даних у Discover</h4>
+                <p><strong>Рішення:</strong></p>
+                <ul>
+                    <li>Змініть time range на "Last 30 days" (вгорі справа)</li>
+                    <li>Натисніть кнопку "Refresh" (🔄)</li>
+                    <li>Перевірте, що data view вибрано (вгорі зліва)</li>
+                    <li>Перевірте дані: <code>curl http://localhost:9200/banking-logs-*/_count</code></li>
+                </ul>
+            </div>
+
+            <div class="danger-box">
+                <h4>❌ Проблема 4: "No fields exist in this data view"</h4>
+                <p><strong>Рішення:</strong></p>
+                <ul>
+                    <li>Видаліть і створіть Data View знову</li>
+                    <li>Оновіть браузер (F5 або Ctrl+F5)</li>
+                    <li>Перевірте: <code>python setup_elasticsearch.py</code></li>
+                </ul>
+            </div>
+
+            <div class="danger-box">
+                <h4>❌ Проблема 5: Недостатньо пам'яті (OutOfMemory)</h4>
+                <p><strong>Рішення:</strong></p>
+                <p>Відредагуйте <code>docker-compose.yml</code>:</p>
+                <div class="code-block">
+environment:
+  - "ES_JAVA_OPTS=-Xms256m -Xmx256m"  # Замість 512m
+                </div>
+                <p>Потім: <code>docker-compose down && docker-compose up -d</code></p>
+            </div>
+
+            <div class="info-box">
+                <h4>💡 Загальні поради:</h4>
+                <ul>
+                    <li>Якщо застрягли більше 10 хвилин - попросіть допомоги!</li>
+                    <li>Подивіться логи: <code>docker-compose logs [service]</code></li>
+                    <li>Перезапустіть все: <code>docker-compose restart</code></li>
+                    <li>Детальніше в STUDENT_GUIDE.md розділ "Troubleshooting"</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Корисні ресурси -->
+        <section>
+            <h2>📚 Корисні ресурси</h2>
+
+            <div class="task-box">
+                <h4>Документація проекту:</h4>
+                <ul>
+                    <li><strong>STUDENT_GUIDE.md</strong> - повний посібник з усіма деталями</li>
+                    <li><strong>QUICK_REFERENCE.md</strong> - швидка довідка KQL запитів</li>
+                    <li><strong>KIBANA_GUIDE.md</strong> - приклади візуалізацій</li>
+                    <li><strong>PROJECT_OVERVIEW.md</strong> - технічна документація</li>
+                </ul>
+
+                <h4>Офіційна документація Elastic:</h4>
+                <ul>
+                    <li><a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/index.html" target="_blank">Elasticsearch Guide</a></li>
+                    <li><a href="https://www.elastic.co/guide/en/kibana/current/index.html" target="_blank">Kibana Guide</a></li>
+                    <li><a href="https://www.elastic.co/guide/en/kibana/current/kuery-query.html" target="_blank">KQL Query Syntax</a></li>
+                </ul>
+
+                <h4>Відео:</h4>
+                <ul>
+                    <li>YouTube: "Elastic Stack Tutorial"</li>
+                    <li>Elastic Official Channel</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Реальне використання -->
+        <section>
+            <h2>🌍 Де це використовується в реальності?</h2>
+
+            <div class="info-box">
+                <h4>🏦 Банки:</h4>
+                <ul>
+                    <li><strong>JPMorgan Chase</strong> - моніторинг транзакцій в реальному часі</li>
+                    <li><strong>Goldman Sachs</strong> - fraud detection системи</li>
+                    <li><strong>HSBC</strong> - compliance аудит</li>
+                </ul>
+
+                <h4>🛒 E-Commerce:</h4>
+                <ul>
+                    <li><strong>eBay</strong> - аналіз поведінки 187 млн користувачів</li>
+                    <li><strong>Booking.com</strong> - пошук та рекомендації</li>
+                </ul>
+
+                <h4>📱 Tech Companies:</h4>
+                <ul>
+                    <li><strong>LinkedIn</strong> - аналіз 450+ млн користувачів</li>
+                    <li><strong>Netflix</strong> - моніторинг streaming інфраструктури</li>
+                    <li><strong>Uber</strong> - real-time analytics поїздок</li>
+                </ul>
+            </div>
+
+            <div class="success-box">
+                <h4>💰 Зарплати спеціалістів ELK Stack:</h4>
+                <table>
+                    <tr>
+                        <td><strong>Junior ELK Engineer:</strong></td>
+                        <td>$40,000 - $60,000 / рік</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Middle:</strong></td>
+                        <td>$60,000 - $90,000 / рік</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Senior:</strong></td>
+                        <td>$80,000 - $120,000 / рік</td>
+                    </tr>
+                    <tr>
+                        <td><strong>DevOps/SRE з ELK:</strong></td>
+                        <td>$100,000 - $150,000 / рік</td>
+                    </tr>
+                </table>
+                <p><strong>В Україні:</strong> від $1,500/місяць (Junior) до $5,000+ (Senior)</p>
+            </div>
+        </section>
+
+        <!-- Висновок -->
+        <section>
+            <h2>🎓 Висновок</h2>
+
+            <div class="success-box">
+                <h3>Ви навчилися:</h3>
+                <ul class="checklist">
+                    <li>Налаштовувати ELK Stack з Docker</li>
+                    <li>Обробляти 80,000+ логів</li>
+                    <li>Писати KQL запити</li>
+                    <li>Створювати професійні візуалізації</li>
+                    <li>Будувати дашборди</li>
+                    <li>Виявляти шахрайство та атаки</li>
+                    <li>Аналізувати безпеку та бізнес-метрики</li>
+                </ul>
+
+                <p><strong>Це реальні навики, які використовуються в Netflix, LinkedIn, JPMorgan Chase та тисячах інших компаній!</strong></p>
+            </div>
+
+            <div class="info-box">
+                <h3>💡 Наступні кроки:</h3>
+                <ul>
+                    <li>Пройдіть офіційні курси Elastic (безкоштовні!)</li>
+                    <li>Отримайте сертифікацію "Elasticsearch Engineer"</li>
+                    <li>Додайте ELK Stack до свого резюме</li>
+                    <li>Практикуйтеся на реальних проектах</li>
+                </ul>
+            </div>
+
+            <div class="warning-box text-center">
+                <h3>Успіхів у виконанні роботи! 🚀</h3>
+                <p><strong>Пам'ятайте:</strong> Ви вчитеся інструменту, який використовує весь світ. Це інвестиція у вашу кар'єру!</p>
+            </div>
+        </section>
+    </main>
+
+    <!-- Navigation -->
+    <div class="practical-nav">
+        <a href="#" onclick="window.history.back(); return false;" class="nav-btn nav-btn-back">
+            ← Назад
+        </a>
+        <a href="#" class="nav-btn nav-btn-next" style="opacity: 0.5; cursor: not-allowed;">
+            Наступна практична →
+        </a>
+    </div>
+</div>
+</body>
+</html>

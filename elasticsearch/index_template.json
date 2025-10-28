@@ -1,0 +1,132 @@
+{
+  "index_patterns": ["banking-logs-*"],
+  "template": {
+    "settings": {
+      "number_of_shards": 1,
+      "number_of_replicas": 0,
+      "index.refresh_interval": "5s"
+    },
+    "mappings": {
+      "properties": {
+        "@timestamp": {
+          "type": "date"
+        },
+        "timestamp": {
+          "type": "date",
+          "format": "yyyy-MM-dd HH:mm:ss||strict_date_optional_time||epoch_millis"
+        },
+        "transaction_type": {
+          "type": "keyword"
+        },
+        "transaction_id": {
+          "type": "keyword"
+        },
+        "event_id": {
+          "type": "keyword"
+        },
+        "user_id": {
+          "type": "keyword"
+        },
+        "account_number": {
+          "type": "keyword"
+        },
+        "amount": {
+          "type": "float"
+        },
+        "amount_category": {
+          "type": "keyword"
+        },
+        "currency": {
+          "type": "keyword"
+        },
+        "status": {
+          "type": "keyword"
+        },
+        "merchant": {
+          "type": "keyword"
+        },
+        "merchant_category": {
+          "type": "keyword"
+        },
+        "card_type": {
+          "type": "keyword"
+        },
+        "card_last4": {
+          "type": "keyword"
+        },
+        "client_ip": {
+          "type": "ip"
+        },
+        "country": {
+          "type": "keyword"
+        },
+        "service": {
+          "type": "keyword"
+        },
+        "response_time_ms": {
+          "type": "integer"
+        },
+        "is_fraud": {
+          "type": "boolean"
+        },
+        "is_brute_force": {
+          "type": "boolean"
+        },
+        "suspicious": {
+          "type": "boolean"
+        },
+        "suspicious_reason": {
+          "type": "keyword"
+        },
+        "security_event": {
+          "type": "keyword"
+        },
+        "auth_method": {
+          "type": "keyword"
+        },
+        "user_agent": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword"
+            }
+          }
+        },
+        "session_id": {
+          "type": "keyword"
+        },
+        "operation": {
+          "type": "keyword"
+        },
+        "atm_id": {
+          "type": "keyword"
+        },
+        "atm_location": {
+          "type": "keyword"
+        },
+        "transfer_type": {
+          "type": "keyword"
+        },
+        "from_account": {
+          "type": "keyword"
+        },
+        "to_account": {
+          "type": "keyword"
+        },
+        "geo": {
+          "properties": {
+            "location": {
+              "type": "geo_point"
+            },
+            "country_name": {
+              "type": "keyword"
+            },
+            "city_name": {
+              "type": "keyword"
+            }
+          }
+        }
+      }
+    }
+  }
+}
